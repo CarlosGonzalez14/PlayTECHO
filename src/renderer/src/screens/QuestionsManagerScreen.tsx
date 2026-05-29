@@ -1,10 +1,16 @@
 import { ArrowLeft, FileDown, FileSpreadsheet, Upload } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { AppButton } from '../shared/components/AppButton';
 import type { Category, Question } from '../shared/types/question.types';
 import type { QuestionSummary } from '../shared/types/window.types';
 import { QuestionForm } from './questions/QuestionForm';
+import {
+  buildQuestionFromParsedRow,
+  downloadQuestionsBackup,
+  downloadQuestionsTemplate,
+  parseQuestionsFile,
+} from '../shared/utils/questionFiles';
 
 interface QuestionsManagerScreenProps {
   onBack: () => void;
@@ -15,6 +21,9 @@ export function QuestionsManagerScreen({ onBack }: QuestionsManagerScreenProps) 
   const [questionSummaries, setQuestionSummaries] = useState<QuestionSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
+  const [fileActionMessage, setFileActionMessage] = useState<string | null>(null);
 
   const loadQuestionData = useCallback(async () => {
     try {
@@ -67,6 +76,92 @@ export function QuestionsManagerScreen({ onBack }: QuestionsManagerScreenProps) 
   const handleSaveQuestion = async (question: Question) => {
     await window.playtecho.questions.createQuestion(question);
     await loadQuestionData();
+  };
+
+  const handleDownloadTemplate = () => {
+    downloadQuestionsTemplate();
+    setFileActionMessage('Machote descargado correctamente.');
+  };
+
+  const handleBackupQuestions = async () => {
+    try {
+      const questions = await window.playtecho.questions.getQuestionsForExport();
+
+      if (questions.length === 0) {
+        setFileActionMessage('Todavía no hay preguntas guardadas para respaldar.');
+        return;
+      }
+
+      downloadQuestionsBackup(questions);
+      setFileActionMessage('Respaldo descargado correctamente.');
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'No se pudo generar el respaldo.';
+
+      setFileActionMessage(message);
+    }
+  };
+
+  const handleOpenImportFile = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleImportFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+
+    event.target.value = '';
+
+    if (!file) {
+      return;
+    }
+
+    try {
+      setIsImporting(true);
+      setFileActionMessage(null);
+
+      const result = await parseQuestionsFile(file);
+
+      if (result.errors.length > 0) {
+        setFileActionMessage(
+          `El archivo tiene errores y no fue importado. Primeros errores: ${result.errors
+            .slice(0, 5)
+            .join(' ')}`
+        );
+        return;
+      }
+
+      if (result.validQuestions.length === 0) {
+        setFileActionMessage('El archivo no contiene preguntas válidas para importar.');
+        return;
+      }
+
+      let importedCount = 0;
+
+      for (const parsedQuestion of result.validQuestions) {
+        const category = await window.playtecho.questions.createCategory(
+          parsedQuestion.categoria
+        );
+
+        const question = buildQuestionFromParsedRow(parsedQuestion, category.id);
+
+        await window.playtecho.questions.createQuestion(question);
+
+        importedCount += 1;
+      }
+
+      await loadQuestionData();
+
+      setFileActionMessage(
+        `Importación completada. Se guardaron ${importedCount} preguntas en SQLite.`
+      );
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'No se pudo importar el archivo.';
+
+      setFileActionMessage(message);
+    } finally {
+      setIsImporting(false);
+    }
   };
 
   return (
@@ -149,20 +244,24 @@ export function QuestionsManagerScreen({ onBack }: QuestionsManagerScreenProps) 
         >
           <SmallActionCard
             icon={<Upload size={26} />}
-            title="Importar Excel/CSV"
-            description="Lo conectaremos después."
+            title={isImporting ? 'Importando...' : 'Importar Excel/CSV'}
+            description="Carga preguntas desde un archivo externo."
+            onClick={handleOpenImportFile}
+            disabled={isImporting}
           />
 
           <SmallActionCard
             icon={<FileSpreadsheet size={26} />}
             title="Descargar machote"
-            description="Pendiente para la fase de Excel."
+            description="Archivo guía para llenar preguntas."
+            onClick={handleDownloadTemplate}
           />
 
           <SmallActionCard
             icon={<FileDown size={26} />}
             title="Respaldar preguntas"
-            description="Exportación pendiente."
+            description="Exporta el banco actual."
+            onClick={handleBackupQuestions}
           />
 
           <SmallActionCard
@@ -170,6 +269,28 @@ export function QuestionsManagerScreen({ onBack }: QuestionsManagerScreenProps) 
             description="Preguntas guardadas en SQLite."
           />
         </section>
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".xlsx,.xls,.csv"
+          onChange={handleImportFile}
+          style={{ display: 'none' }}
+        />
+
+        {fileActionMessage && (
+          <section
+            style={{
+              background: 'rgba(255, 255, 255, 0.16)',
+              border: '1px solid rgba(255, 255, 255, 0.24)',
+              borderRadius: '20px',
+              padding: '16px',
+              lineHeight: 1.5,
+            }}
+          >
+            {fileActionMessage}
+          </section>
+        )}
 
         {isLoading ? (
           <section
@@ -260,11 +381,22 @@ interface SmallActionCardProps {
   icon?: ReactNode;
   title: string;
   description: string;
+  onClick?: () => void;
+  disabled?: boolean;
 }
 
-function SmallActionCard({ icon, title, description }: SmallActionCardProps) {
+function SmallActionCard({
+  icon,
+  title,
+  description,
+  onClick,
+  disabled = false,
+}: SmallActionCardProps) {
   return (
-    <article
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled || !onClick}
       style={{
         minHeight: '132px',
         padding: '20px',
@@ -274,6 +406,10 @@ function SmallActionCard({ icon, title, description }: SmallActionCardProps) {
         display: 'grid',
         gap: '10px',
         alignContent: 'start',
+        textAlign: 'left',
+        color: '#ffffff',
+        cursor: onClick && !disabled ? 'pointer' : 'default',
+        opacity: disabled ? 0.6 : 1,
       }}
     >
       <div
@@ -318,6 +454,6 @@ function SmallActionCard({ icon, title, description }: SmallActionCardProps) {
       >
         {description}
       </p>
-    </article>
+    </button>
   );
 }
