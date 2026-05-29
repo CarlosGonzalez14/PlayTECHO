@@ -23,6 +23,21 @@ export interface QuestionForExport {
   }[];
 }
 
+export interface GameQuestionAnswer {
+  id: number;
+  respuesta: string;
+  puntaje: number;
+}
+
+export interface GameQuestionForPlay {
+  id: number;
+  pregunta: string;
+  dificultad: QuestionDifficulty;
+  categoria_id: number;
+  categoria_nombre: string;
+  respuestas: GameQuestionAnswer[];
+}
+
 export interface PlayTechoApi {
   questions: {
     getCategories: () => Promise<Category[]>;
@@ -31,6 +46,7 @@ export interface PlayTechoApi {
     deleteQuestion: (questionId: number) => Promise<{ deleted: boolean; id: number }>;
     getQuestionSummaries: () => Promise<QuestionSummary[]>;
     getQuestionsForExport: () => Promise<QuestionForExport[]>;
+    getQuestionForGameById: (questionId: number) => Promise<GameQuestionForPlay>;
   };
   windows: {
     openHundredTecherosWindows: () => Promise<{ success: boolean }>;
