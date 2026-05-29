@@ -228,3 +228,39 @@ export function getQuestionsForExport(): QuestionForExport[] {
       })),
   }));
 }
+
+export function deleteQuestion(questionId: number) {
+  const database = getDatabase();
+
+  if (!questionId || Number.isNaN(questionId)) {
+    throw new Error('El ID de la pregunta no es válido.');
+  }
+
+  const existingQuestion = database
+    .prepare(
+      `
+      SELECT id
+      FROM preguntas
+      WHERE id = ?
+      `
+    )
+    .get(questionId) as { id: number } | undefined;
+
+  if (!existingQuestion) {
+    throw new Error('La pregunta que intentas eliminar no existe.');
+  }
+
+  const result = database
+    .prepare(
+      `
+      DELETE FROM preguntas
+      WHERE id = ?
+      `
+    )
+    .run(questionId);
+
+  return {
+    deleted: result.changes > 0,
+    id: questionId,
+  };
+}
