@@ -15,6 +15,7 @@ interface OverlayState {
 
 export function PublicGameWindowScreen() {
   const [question, setQuestion] = useState('Esperando pregunta...');
+  const [answerCount, setAnswerCount] = useState(0);
   const [revealedAnswers, setRevealedAnswers] = useState<RevealedAnswer[]>([]);
   const [overlay, setOverlay] = useState<OverlayState | null>(null);
   const [eventLog, setEventLog] = useState<string[]>([]);
@@ -28,7 +29,10 @@ export function PublicGameWindowScreen() {
         ]);
 
         if (gameEvent.type === 'SHOW_QUESTION') {
-          setQuestion(gameEvent.payload.question);
+            setQuestion(gameEvent.payload.question);
+            setAnswerCount(gameEvent.payload.answerCount);
+            setRevealedAnswers([]);
+            setOverlay(null);
         }
 
         if (gameEvent.type === 'REVEAL_ANSWER') {
@@ -59,6 +63,7 @@ export function PublicGameWindowScreen() {
 
         if (gameEvent.type === 'RESET_BOARD') {
           setQuestion('Esperando pregunta...');
+          setAnswerCount(0);
           setRevealedAnswers([]);
           setOverlay(null);
           setEventLog([]);
@@ -208,7 +213,7 @@ export function PublicGameWindowScreen() {
             gap: '14px',
           }}
         >
-          {Array.from({ length: 10 }).map((_, index) => {
+          {Array.from({ length: answerCount > 0 ? answerCount : 10 }).map((_, index) => {
             const answerNumber = index + 1;
             const revealedAnswer = revealedAnswers.find(
               (answer) => answer.index === answerNumber
