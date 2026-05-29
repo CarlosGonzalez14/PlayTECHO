@@ -1,4 +1,5 @@
 import type { Category, Question, QuestionDifficulty } from './question.types';
+import type { HundredTecherosGameEvent } from './game-events.types';
 
 export interface QuestionSummary {
   id: number;
@@ -33,6 +34,15 @@ export interface PlayTechoApi {
   };
   windows: {
     openHundredTecherosWindows: () => Promise<{ success: boolean }>;
+  };
+  game: {
+    sendEventToPublicWindow: (
+      gameEvent: HundredTecherosGameEvent
+    ) => Promise<{ success: boolean }>;
+
+    onEventFromAdmin: (
+      callback: (gameEvent: HundredTecherosGameEvent) => void
+    ) => () => void;
   };
 }
 
