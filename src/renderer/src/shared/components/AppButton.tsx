@@ -1,6 +1,13 @@
 import type { ReactNode } from 'react';
 
-type AppButtonVariant = 'primary' | 'secondary' | 'danger' | 'success' | 'warning';
+type AppButtonVariant =
+  | 'primary'
+  | 'secondary'
+  | 'danger'
+  | 'success'
+  | 'warning'
+  | 'modalPrimary'
+  | 'modalSecondary';
 
 interface AppButtonProps {
   children: ReactNode;
@@ -31,6 +38,15 @@ const variantStyles: Record<AppButtonVariant, React.CSSProperties> = {
   warning: {
     background: '#fdc533',
     color: '#1d1d1b',
+  },
+  modalPrimary: {
+  background: '#005ca9',
+  color: '#ffffff',
+  },
+  modalSecondary: {
+    background: '#f2f2f2',
+    color: '#1d1d1b',
+    border: '2px solid #c6c6c6',
   },
 };
 

@@ -133,11 +133,11 @@ export function CategoryModal({ isOpen, onClose, onCreateCategory }: CategoryMod
             flexWrap: 'wrap',
           }}
         >
-          <AppButton variant="secondary" onClick={onClose} disabled={isSubmitting}>
+          <AppButton variant="modalSecondary" onClick={onClose} disabled={isSubmitting}>
             Cancelar
           </AppButton>
 
-          <AppButton onClick={handleSubmit} disabled={isSubmitting}>
+          <AppButton variant="modalPrimary" onClick={handleSubmit} disabled={isSubmitting}>
             {isSubmitting ? 'Creando...' : 'Crear categoría'}
           </AppButton>
         </div>
