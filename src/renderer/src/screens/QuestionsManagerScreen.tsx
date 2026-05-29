@@ -1,11 +1,57 @@
-import { ArrowLeft, FileDown, FileSpreadsheet, PlusCircle, Upload } from 'lucide-react';
+import { ArrowLeft, FileDown, FileSpreadsheet, Upload } from 'lucide-react';
+import { useState } from 'react';
 import { AppButton } from '../shared/components/AppButton';
+import type { Category, Question } from '../shared/types/question.types';
+import { QuestionForm } from './questions/QuestionForm';
 
 interface QuestionsManagerScreenProps {
   onBack: () => void;
 }
 
+const initialCategories: Category[] = [
+  {
+    id: 1,
+    nombre: 'Cultura general',
+  },
+  {
+    id: 2,
+    nombre: 'TECHO',
+  },
+  {
+    id: 3,
+    nombre: 'Comunidad',
+  },
+];
+
 export function QuestionsManagerScreen({ onBack }: QuestionsManagerScreenProps) {
+  const [categories, setCategories] = useState<Category[]>(initialCategories);
+  const [savedQuestions, setSavedQuestions] = useState<Question[]>([]);
+
+  const handleCreateCategory = (name: string): Category => {
+    const existingCategory = categories.find(
+      (category) => category.nombre.toLowerCase() === name.toLowerCase()
+    );
+
+    if (existingCategory) {
+      alert('Esa categoría ya existe. Se seleccionará la categoría existente.');
+      return existingCategory;
+    }
+
+    const newCategory: Category = {
+      id: Date.now(),
+      nombre: name,
+    };
+
+    setCategories((currentCategories) => [...currentCategories, newCategory]);
+
+    return newCategory;
+  };
+
+  const handleSaveQuestion = (question: Question) => {
+    setSavedQuestions((currentQuestions) => [...currentQuestions, question]);
+    console.log('Pregunta lista para guardar en SQLite:', question);
+  };
+
   return (
     <main
       className="app-shell"
@@ -16,7 +62,7 @@ export function QuestionsManagerScreen({ onBack }: QuestionsManagerScreenProps) 
     >
       <section
         style={{
-          width: 'min(1100px, 100%)',
+          width: 'min(1180px, 100%)',
           margin: '0 auto',
           display: 'grid',
           gap: '28px',
@@ -40,19 +86,19 @@ export function QuestionsManagerScreen({ onBack }: QuestionsManagerScreenProps) 
                 lineHeight: 0.95,
               }}
             >
-              Preguntas
+              Banco de preguntas
             </h1>
 
             <p
               style={{
                 margin: '8px 0 0',
-                maxWidth: '720px',
+                maxWidth: '760px',
                 opacity: 0.9,
                 lineHeight: 1.5,
               }}
             >
-              Aquí construiremos el formulario para crear preguntas, importar desde Excel o
-              CSV, descargar el machote y respaldar el banco de preguntas.
+              Crea preguntas para los juegos de PlayTECHO. En este paso validamos la
+              estructura antes de conectar el formulario con SQLite.
             </p>
           </div>
 
@@ -68,93 +114,105 @@ export function QuestionsManagerScreen({ onBack }: QuestionsManagerScreenProps) 
           style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-            gap: '18px',
+            gap: '16px',
           }}
         >
-          <ActionCard
-            icon={<PlusCircle size={34} />}
-            title="Crear pregunta"
-            description="Formulario manual con categoría, dificultad, respuestas y puntajes."
-          />
-
-          <ActionCard
-            icon={<Upload size={34} />}
+          <SmallActionCard
+            icon={<Upload size={26} />}
             title="Importar Excel/CSV"
-            description="Carga masiva de preguntas desde un archivo externo."
+            description="Lo conectaremos después."
           />
 
-          <ActionCard
-            icon={<FileSpreadsheet size={34} />}
+          <SmallActionCard
+            icon={<FileSpreadsheet size={26} />}
             title="Descargar machote"
-            description="Archivo guía para llenar preguntas con el formato correcto."
+            description="Pendiente para la fase de Excel."
           />
 
-          <ActionCard
-            icon={<FileDown size={34} />}
+          <SmallActionCard
+            icon={<FileDown size={26} />}
             title="Respaldar preguntas"
-            description="Exportación del banco de preguntas en Excel o CSV."
+            description="Exportación pendiente."
+          />
+
+          <SmallActionCard
+            title={`${savedQuestions.length}`}
+            description="Preguntas validadas en esta sesión."
           />
         </section>
+
+        <QuestionForm
+          categories={categories}
+          onCreateCategory={handleCreateCategory}
+          onSaveQuestion={handleSaveQuestion}
+        />
       </section>
     </main>
   );
 }
 
-interface ActionCardProps {
-  icon: React.ReactNode;
+interface SmallActionCardProps {
+  icon?: React.ReactNode;
   title: string;
   description: string;
 }
 
-function ActionCard({ icon, title, description }: ActionCardProps) {
+function SmallActionCard({ icon, title, description }: SmallActionCardProps) {
   return (
     <article
       style={{
-        minHeight: '210px',
-        padding: '24px',
-        borderRadius: '28px',
-        background: 'rgba(255, 255, 255, 0.16)',
-        border: '1px solid rgba(255, 255, 255, 0.22)',
-        boxShadow: '0 18px 34px rgba(0, 0, 0, 0.16)',
+        minHeight: '132px',
+        padding: '20px',
+        borderRadius: '24px',
+        background: 'rgba(255, 255, 255, 0.13)',
+        border: '1px solid rgba(255, 255, 255, 0.2)',
         display: 'grid',
+        gap: '10px',
         alignContent: 'start',
-        gap: '16px',
       }}
     >
       <div
         style={{
-          width: '64px',
-          height: '64px',
-          borderRadius: '22px',
-          background: 'rgba(255, 255, 255, 0.18)',
-          display: 'grid',
-          placeItems: 'center',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
         }}
       >
-        {icon}
-      </div>
+        {icon && (
+          <span
+            style={{
+              width: '42px',
+              height: '42px',
+              borderRadius: '14px',
+              background: 'rgba(255, 255, 255, 0.18)',
+              display: 'grid',
+              placeItems: 'center',
+            }}
+          >
+            {icon}
+          </span>
+        )}
 
-      <div>
         <h2
           style={{
             margin: 0,
             fontFamily: 'var(--font-title)',
-            fontSize: '1.55rem',
+            fontSize: icon ? '1.25rem' : '2.2rem',
           }}
         >
           {title}
         </h2>
-
-        <p
-          style={{
-            margin: '8px 0 0',
-            lineHeight: 1.45,
-            opacity: 0.9,
-          }}
-        >
-          {description}
-        </p>
       </div>
+
+      <p
+        style={{
+          margin: 0,
+          opacity: 0.86,
+          lineHeight: 1.4,
+        }}
+      >
+        {description}
+      </p>
     </article>
   );
 }
