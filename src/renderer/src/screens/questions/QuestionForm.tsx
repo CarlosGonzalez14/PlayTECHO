@@ -12,8 +12,8 @@ import { CategoryModal } from './CategoryModal';
 
 interface QuestionFormProps {
   categories: Category[];
-  onCreateCategory: (name: string) => Category;
-  onSaveQuestion: (question: Question) => void;
+  onCreateCategory: (name: string) => Promise<Category>;
+  onSaveQuestion: (question: Question) => Promise<void>;
 }
 
 const initialAnswers: Answer[] = [
@@ -34,6 +34,7 @@ export function QuestionForm({
   const [respuestas, setRespuestas] = useState<Answer[]>(initialAnswers);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
 
   const validation = useMemo(
     () =>
@@ -101,45 +102,56 @@ export function QuestionForm({
     );
   };
 
-  const handleCreateCategory = (name: string) => {
-    const newCategory = onCreateCategory(name);
-    setCategoriaId(newCategory.id);
+const handleCreateCategory = async (name: string) => {
+  const newCategory = await onCreateCategory(name);
+  setCategoriaId(newCategory.id);
+};
+
+const handleSave = async () => {
+  const result = validateQuestion({
+    pregunta,
+    dificultad,
+    categoriaId,
+    respuestas,
+  });
+
+  if (!result.isValid || !categoriaId) {
+    setErrors(result.errors);
+    return;
+  }
+
+  const questionToSave: Question = {
+    pregunta: pregunta.trim(),
+    dificultad,
+    categoria_id: categoriaId,
+    estado: 'publicada',
+    respuestas: respuestas.map((answer) => ({
+      respuesta: answer.respuesta.trim(),
+      puntaje: Number(answer.puntaje),
+    })),
   };
 
-  const handleSave = () => {
-    const result = validateQuestion({
-      pregunta,
-      dificultad,
-      categoriaId,
-      respuestas,
-    });
+  try {
+    setIsSaving(true);
+    setErrors([]);
 
-    if (!result.isValid || !categoriaId) {
-      setErrors(result.errors);
-      return;
-    }
-
-    const questionToSave: Question = {
-      pregunta: pregunta.trim(),
-      dificultad,
-      categoria_id: categoriaId,
-      estado: 'publicada',
-      respuestas: respuestas.map((answer) => ({
-        respuesta: answer.respuesta.trim(),
-        puntaje: Number(answer.puntaje),
-      })),
-    };
-
-    onSaveQuestion(questionToSave);
+    await onSaveQuestion(questionToSave);
 
     setPregunta('');
     setDificultad('facil');
     setCategoriaId(null);
     setRespuestas(initialAnswers);
-    setErrors([]);
 
-    alert('Pregunta validada correctamente. En el siguiente paso la conectaremos con SQLite.');
-  };
+    alert('Pregunta guardada correctamente en SQLite.');
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : 'No se pudo guardar la pregunta.';
+
+    setErrors([message]);
+  } finally {
+    setIsSaving(false);
+  }
+};
 
   return (
     <>
@@ -407,10 +419,10 @@ export function QuestionForm({
             flexWrap: 'wrap',
           }}
         >
-          <AppButton variant="success" onClick={handleSave}>
+          <AppButton variant="success" onClick={handleSave} disabled={isSaving}>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '10px' }}>
               <Save size={22} />
-              Guardar pregunta
+              {isSaving ? 'Guardando...' : 'Guardar pregunta'}
             </span>
           </AppButton>
         </footer>
