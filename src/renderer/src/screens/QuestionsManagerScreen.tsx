@@ -1,4 +1,4 @@
-import { ArrowLeft, FileDown, FileSpreadsheet, Upload } from 'lucide-react';
+import { ArrowLeft, FileDown, FileSpreadsheet, Trash2, Upload } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { AppButton } from '../shared/components/AppButton';
@@ -21,6 +21,7 @@ export function QuestionsManagerScreen({ onBack }: QuestionsManagerScreenProps) 
   const [questionSummaries, setQuestionSummaries] = useState<QuestionSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [deletingQuestionId, setDeletingQuestionId] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [isImporting, setIsImporting] = useState(false);
   const [fileActionMessage, setFileActionMessage] = useState<string | null>(null);
@@ -163,6 +164,33 @@ export function QuestionsManagerScreen({ onBack }: QuestionsManagerScreenProps) 
       setIsImporting(false);
     }
   };
+
+  const handleDeleteQuestion = async (questionId: number, questionText: string) => {
+  const shouldDelete = window.confirm(
+    `¿Seguro que deseas eliminar esta pregunta?\n\n"${questionText}"\n\nEsta acción también eliminará sus respuestas y no se puede deshacer.`
+  );
+
+  if (!shouldDelete) {
+    return;
+  }
+
+  try {
+    setDeletingQuestionId(questionId);
+    setFileActionMessage(null);
+
+    await window.playtecho.questions.deleteQuestion(questionId);
+    await loadQuestionData();
+
+    setFileActionMessage('Pregunta eliminada correctamente.');
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : 'No se pudo eliminar la pregunta.';
+
+    setFileActionMessage(message);
+  } finally {
+    setDeletingQuestionId(null);
+  }
+};
 
   return (
     <main
