@@ -16,6 +16,22 @@ const playtechoApi = {
     openHundredTecherosWindows: () =>
       ipcRenderer.invoke('windows:openHundredTecherosWindows'),
   },
+  game: {
+    sendEventToPublicWindow: (gameEvent: unknown) =>
+      ipcRenderer.invoke('game:sendEventToPublicWindow', gameEvent),
+
+    onEventFromAdmin: (callback: (gameEvent: unknown) => void) => {
+      const listener = (_event: Electron.IpcRendererEvent, gameEvent: unknown) => {
+        callback(gameEvent);
+      };
+
+      ipcRenderer.on('game:eventFromAdmin', listener);
+
+      return () => {
+        ipcRenderer.removeListener('game:eventFromAdmin', listener);
+      };
+    },
+  },
 };
 
 if (process.contextIsolated) {
