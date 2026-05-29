@@ -8,6 +8,7 @@ const playtechoApi = {
     createQuestion: (question: unknown) =>
       ipcRenderer.invoke('questions:createQuestion', question),
     getQuestionSummaries: () => ipcRenderer.invoke('questions:getQuestionSummaries'),
+    getQuestionsForExport: () => ipcRenderer.invoke('questions:getQuestionsForExport'),
   },
 };
 
