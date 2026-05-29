@@ -27,6 +27,7 @@ export interface PlayTechoApi {
     getCategories: () => Promise<Category[]>;
     createCategory: (name: string) => Promise<Category>;
     createQuestion: (question: Question) => Promise<QuestionSummary>;
+    deleteQuestion: (questionId: number) => Promise<{ deleted: boolean; id: number }>;
     getQuestionSummaries: () => Promise<QuestionSummary[]>;
     getQuestionsForExport: () => Promise<QuestionForExport[]>;
   };
