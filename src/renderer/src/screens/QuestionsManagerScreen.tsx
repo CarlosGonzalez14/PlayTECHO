@@ -364,39 +364,73 @@ export function QuestionsManagerScreen({ onBack }: QuestionsManagerScreenProps) 
                 gap: '10px',
               }}
             >
-              {questionSummaries.map((question) => (
-                <article
-                  key={question.id}
-                  style={{
-                    background: 'rgba(255, 255, 255, 0.14)',
-                    border: '1px solid rgba(255, 255, 255, 0.2)',
-                    borderRadius: '20px',
-                    padding: '18px',
-                    display: 'grid',
-                    gap: '8px',
-                  }}
-                >
-                  <strong
-                    style={{
-                      fontFamily: 'var(--font-title)',
-                      fontSize: '1.25rem',
-                    }}
-                  >
-                    {question.pregunta}
-                  </strong>
+              {questionSummaries.map((question) => {
+                const isDeleting = deletingQuestionId === question.id;
 
-                  <span
+                return (
+                  <article
+                    key={question.id}
                     style={{
-                      opacity: 0.88,
-                      lineHeight: 1.4,
+                      background: 'rgba(255, 255, 255, 0.14)',
+                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      borderRadius: '20px',
+                      padding: '18px',
+                      display: 'grid',
+                      gridTemplateColumns: '1fr auto',
+                      gap: '16px',
+                      alignItems: 'center',
                     }}
                   >
-                    Categoría: {question.categoria_nombre} · Dificultad:{' '}
-                    {question.dificultad} · Respuestas: {question.total_respuestas} ·
-                    Puntaje total: {question.total_puntaje}
-                  </span>
-                </article>
-              ))}
+                    <div
+                      style={{
+                        display: 'grid',
+                        gap: '8px',
+                      }}
+                    >
+                      <strong
+                        style={{
+                          fontFamily: 'var(--font-title)',
+                          fontSize: '1.25rem',
+                        }}
+                      >
+                        {question.pregunta}
+                      </strong>
+
+                      <span
+                        style={{
+                          opacity: 0.88,
+                          lineHeight: 1.4,
+                        }}
+                      >
+                        Categoría: {question.categoria_nombre} · Dificultad:{' '}
+                        {question.dificultad} · Respuestas: {question.total_respuestas} · Puntaje
+                        total: {question.total_puntaje}
+                      </span>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteQuestion(question.id, question.pregunta)}
+                      disabled={isDeleting}
+                      title="Eliminar pregunta"
+                      style={{
+                        width: '48px',
+                        height: '48px',
+                        borderRadius: '16px',
+                        background: '#e94362',
+                        color: '#ffffff',
+                        display: 'grid',
+                        placeItems: 'center',
+                        cursor: isDeleting ? 'not-allowed' : 'pointer',
+                        opacity: isDeleting ? 0.6 : 1,
+                        boxShadow: '0 10px 20px rgba(0, 0, 0, 0.18)',
+                      }}
+                    >
+                      <Trash2 size={22} />
+                    </button>
+                  </article>
+                );
+              })}
             </div>
           </section>
         )}
