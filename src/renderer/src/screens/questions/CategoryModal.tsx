@@ -5,17 +5,18 @@ import { AppButton } from '../../shared/components/AppButton';
 interface CategoryModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onCreateCategory: (name: string) => void;
+  onCreateCategory: (name: string) => Promise<void>;
 }
 
 export function CategoryModal({ isOpen, onClose, onCreateCategory }: CategoryModalProps) {
   const [categoryName, setCategoryName] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isOpen) {
     return null;
   }
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const cleanedName = categoryName.trim();
 
     if (!cleanedName) {
@@ -23,9 +24,19 @@ export function CategoryModal({ isOpen, onClose, onCreateCategory }: CategoryMod
       return;
     }
 
-    onCreateCategory(cleanedName);
-    setCategoryName('');
-    onClose();
+    try {
+      setIsSubmitting(true);
+      await onCreateCategory(cleanedName);
+      setCategoryName('');
+      onClose();
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'No se pudo crear la categoría.';
+
+      alert(message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -74,6 +85,7 @@ export function CategoryModal({ isOpen, onClose, onCreateCategory }: CategoryMod
           <button
             type="button"
             onClick={onClose}
+            disabled={isSubmitting}
             style={{
               width: '42px',
               height: '42px',
@@ -81,7 +93,7 @@ export function CategoryModal({ isOpen, onClose, onCreateCategory }: CategoryMod
               background: '#f2f2f2',
               display: 'grid',
               placeItems: 'center',
-              cursor: 'pointer',
+              cursor: isSubmitting ? 'not-allowed' : 'pointer',
             }}
           >
             <X size={22} />
@@ -100,6 +112,7 @@ export function CategoryModal({ isOpen, onClose, onCreateCategory }: CategoryMod
             value={categoryName}
             onChange={(event) => setCategoryName(event.target.value)}
             placeholder="Ej. Cultura general"
+            disabled={isSubmitting}
             style={{
               width: '100%',
               minHeight: '52px',
@@ -120,11 +133,13 @@ export function CategoryModal({ isOpen, onClose, onCreateCategory }: CategoryMod
             flexWrap: 'wrap',
           }}
         >
-          <AppButton variant="secondary" onClick={onClose}>
+          <AppButton variant="secondary" onClick={onClose} disabled={isSubmitting}>
             Cancelar
           </AppButton>
 
-          <AppButton onClick={handleSubmit}>Crear categoría</AppButton>
+          <AppButton onClick={handleSubmit} disabled={isSubmitting}>
+            {isSubmitting ? 'Creando...' : 'Crear categoría'}
+          </AppButton>
         </div>
       </section>
     </div>
