@@ -294,7 +294,7 @@ export function QuestionsManagerScreen({ onBack }: QuestionsManagerScreenProps) 
 
           <SmallActionCard
             title={`${questionSummaries.length}`}
-            description="Preguntas guardadas en SQLite."
+            description="Pregunta(s) guardada(s)."
           />
         </section>
 
