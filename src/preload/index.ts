@@ -12,6 +12,10 @@ const playtechoApi = {
     getQuestionSummaries: () => ipcRenderer.invoke('questions:getQuestionSummaries'),
     getQuestionsForExport: () => ipcRenderer.invoke('questions:getQuestionsForExport'),
   },
+  windows: {
+    openHundredTecherosWindows: () =>
+      ipcRenderer.invoke('windows:openHundredTecherosWindows'),
+  },
 };
 
 if (process.contextIsolated) {
