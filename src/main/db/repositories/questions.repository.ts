@@ -158,3 +158,73 @@ export function getQuestionSummaries(): QuestionSummaryRow[] {
     )
     .all() as QuestionSummaryRow[];
 }
+
+export interface QuestionForExport {
+  id: number;
+  categoria: string;
+  pregunta: string;
+  dificultad: QuestionDifficulty;
+  respuestas: {
+    respuesta: string;
+    puntaje: number;
+  }[];
+}
+
+interface ExportQuestionRow {
+  id: number;
+  categoria: string;
+  pregunta: string;
+  dificultad: QuestionDifficulty;
+}
+
+interface ExportAnswerRow {
+  pregunta_id: number;
+  respuesta: string;
+  puntaje: number;
+}
+
+export function getQuestionsForExport(): QuestionForExport[] {
+  const database = getDatabase();
+
+  const questions = database
+    .prepare(
+      `
+      SELECT
+        p.id,
+        c.nombre AS categoria,
+        p.pregunta,
+        p.dificultad
+      FROM preguntas p
+      INNER JOIN categorias c ON c.id = p.categoria_id
+      WHERE p.estado = 'publicada'
+      ORDER BY p.id ASC
+      `
+    )
+    .all() as ExportQuestionRow[];
+
+  const answers = database
+    .prepare(
+      `
+      SELECT
+        pregunta_id,
+        respuesta,
+        puntaje
+      FROM respuestas
+      ORDER BY id ASC
+      `
+    )
+    .all() as ExportAnswerRow[];
+
+  return questions.map((question) => ({
+    id: question.id,
+    categoria: question.categoria,
+    pregunta: question.pregunta,
+    dificultad: question.dificultad,
+    respuestas: answers
+      .filter((answer) => answer.pregunta_id === question.id)
+      .map((answer) => ({
+        respuesta: answer.respuesta,
+        puntaje: answer.puntaje,
+      })),
+  }));
+}
