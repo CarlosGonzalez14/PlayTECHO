@@ -7,6 +7,8 @@ const playtechoApi = {
     createCategory: (name: string) => ipcRenderer.invoke('questions:createCategory', name),
     createQuestion: (question: unknown) =>
       ipcRenderer.invoke('questions:createQuestion', question),
+    deleteQuestion: (questionId: number) =>
+      ipcRenderer.invoke('questions:deleteQuestion', questionId),
     getQuestionSummaries: () => ipcRenderer.invoke('questions:getQuestionSummaries'),
     getQuestionsForExport: () => ipcRenderer.invoke('questions:getQuestionsForExport'),
   },
