@@ -3,6 +3,7 @@ import { createCategory, getAllCategories } from '../db/repositories/categories.
 import {
   createQuestion,
   getQuestionSummaries,
+  getQuestionsForExport,
   type CreateQuestionInput,
 } from '../db/repositories/questions.repository';
 
@@ -47,6 +48,14 @@ export function registerQuestionsIpc() {
   registerHandler('questions:getQuestionSummaries', () => {
     try {
       return getQuestionSummaries();
+    } catch (error) {
+      throw new Error(getErrorMessage(error));
+    }
+  });
+
+  registerHandler('questions:getQuestionsForExport', () => {
+    try {
+      return getQuestionsForExport();
     } catch (error) {
       throw new Error(getErrorMessage(error));
     }
