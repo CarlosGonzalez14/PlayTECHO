@@ -408,7 +408,80 @@ export function AdminGameWindowScreen() {
             </div>
           </section>
         )}
+        <section style={panelStyle}>
+        <h2 style={sectionTitleStyle}>Turno y puntos</h2>
 
+        <div style={buttonGridStyle}>
+            <AppButton
+            variant="danger"
+            onClick={() =>
+                sendGameEvent({
+                type: 'SET_ACTIVE_TEAM',
+                payload: {
+                    team: 'red',
+                    text: 'Turno del equipo rojo',
+                },
+                })
+            }
+            >
+            Turno equipo rojo
+            </AppButton>
+
+            <AppButton
+            variant="success"
+            onClick={() =>
+                sendGameEvent({
+                type: 'SET_ACTIVE_TEAM',
+                payload: {
+                    team: 'green',
+                    text: 'Turno del equipo verde',
+                },
+                })
+            }
+            >
+            Turno equipo verde
+            </AppButton>
+
+            <AppButton
+            variant="danger"
+            onClick={() =>
+                sendGameEvent({
+                type: 'AWARD_ROUND_POINTS',
+                payload: {
+                    team: 'red',
+                },
+                })
+            }
+            >
+            Puntos para equipo rojo
+            </AppButton>
+
+            <AppButton
+            variant="success"
+            onClick={() =>
+                sendGameEvent({
+                type: 'AWARD_ROUND_POINTS',
+                payload: {
+                    team: 'green',
+                },
+                })
+            }
+            >
+            Puntos para equipo verde
+            </AppButton>
+
+            <AppButton
+            variant="secondary"
+            onClick={() =>
+                sendGameEvent({
+                type: 'RESET_ROUND',
+                })
+            }
+            >
+            Limpiar ronda
+            </AppButton>
+        </div>
+        </section>
         <section style={panelStyle}>
           <h2 style={sectionTitleStyle}>Overlays</h2>
 
