@@ -2,7 +2,7 @@ import { ipcMain } from 'electron';
 import { createCategory, getAllCategories } from '../db/repositories/categories.repository';
 import {
   createQuestion,
-  deleteQuestion,
+  getQuestionForGameById,
   getQuestionSummaries,
   getQuestionsForExport,
   type CreateQuestionInput,
@@ -65,6 +65,14 @@ export function registerQuestionsIpc() {
   registerHandler('questions:getQuestionsForExport', () => {
     try {
       return getQuestionsForExport();
+    } catch (error) {
+      throw new Error(getErrorMessage(error));
+    }
+  });
+
+  registerHandler('questions:getQuestionForGameById', (_event, questionId: number) => {
+    try {
+      return getQuestionForGameById(questionId);
     } catch (error) {
       throw new Error(getErrorMessage(error));
     }
