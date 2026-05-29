@@ -11,12 +11,24 @@ export interface QuestionSummary {
   total_puntaje: number;
 }
 
+export interface QuestionForExport {
+  id: number;
+  categoria: string;
+  pregunta: string;
+  dificultad: QuestionDifficulty;
+  respuestas: {
+    respuesta: string;
+    puntaje: number;
+  }[];
+}
+
 export interface PlayTechoApi {
   questions: {
     getCategories: () => Promise<Category[]>;
     createCategory: (name: string) => Promise<Category>;
     createQuestion: (question: Question) => Promise<QuestionSummary>;
     getQuestionSummaries: () => Promise<QuestionSummary[]>;
+    getQuestionsForExport: () => Promise<QuestionForExport[]>;
   };
 }
 
