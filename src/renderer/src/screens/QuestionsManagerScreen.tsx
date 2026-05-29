@@ -1,55 +1,72 @@
 import { ArrowLeft, FileDown, FileSpreadsheet, Upload } from 'lucide-react';
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import type { ReactNode } from 'react';
 import { AppButton } from '../shared/components/AppButton';
 import type { Category, Question } from '../shared/types/question.types';
+import type { QuestionSummary } from '../shared/types/window.types';
 import { QuestionForm } from './questions/QuestionForm';
 
 interface QuestionsManagerScreenProps {
   onBack: () => void;
 }
 
-const initialCategories: Category[] = [
-  {
-    id: 1,
-    nombre: 'Cultura general',
-  },
-  {
-    id: 2,
-    nombre: 'TECHO',
-  },
-  {
-    id: 3,
-    nombre: 'Comunidad',
-  },
-];
-
 export function QuestionsManagerScreen({ onBack }: QuestionsManagerScreenProps) {
-  const [categories, setCategories] = useState<Category[]>(initialCategories);
-  const [savedQuestions, setSavedQuestions] = useState<Question[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [questionSummaries, setQuestionSummaries] = useState<QuestionSummary[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
-  const handleCreateCategory = (name: string): Category => {
-    const existingCategory = categories.find(
-      (category) => category.nombre.toLowerCase() === name.toLowerCase()
-    );
+  const loadQuestionData = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setLoadError(null);
 
-    if (existingCategory) {
-      alert('Esa categoría ya existe. Se seleccionará la categoría existente.');
-      return existingCategory;
+      const [storedCategories, storedQuestions] = await Promise.all([
+        window.playtecho.questions.getCategories(),
+        window.playtecho.questions.getQuestionSummaries(),
+      ]);
+
+      setCategories(storedCategories);
+      setQuestionSummaries(storedQuestions);
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'No se pudo cargar la información de preguntas.';
+
+      setLoadError(message);
+    } finally {
+      setIsLoading(false);
     }
+  }, []);
 
-    const newCategory: Category = {
-      id: Date.now(),
-      nombre: name,
-    };
+  useEffect(() => {
+    loadQuestionData();
+  }, [loadQuestionData]);
 
-    setCategories((currentCategories) => [...currentCategories, newCategory]);
+  const handleCreateCategory = async (name: string): Promise<Category> => {
+    const newCategory = await window.playtecho.questions.createCategory(name);
+
+    setCategories((currentCategories) => {
+      const alreadyExists = currentCategories.some(
+        (category) => category.id === newCategory.id
+      );
+
+      if (alreadyExists) {
+        return currentCategories;
+      }
+
+      return [...currentCategories, newCategory].sort((a, b) =>
+        a.nombre.localeCompare(b.nombre)
+      );
+    });
 
     return newCategory;
   };
 
-  const handleSaveQuestion = (question: Question) => {
-    setSavedQuestions((currentQuestions) => [...currentQuestions, question]);
-    console.log('Pregunta lista para guardar en SQLite:', question);
+  const handleSaveQuestion = async (question: Question) => {
+    await window.playtecho.questions.createQuestion(question);
+    await loadQuestionData();
   };
 
   return (
@@ -97,8 +114,8 @@ export function QuestionsManagerScreen({ onBack }: QuestionsManagerScreenProps) 
                 lineHeight: 1.5,
               }}
             >
-              Crea preguntas para los juegos de PlayTECHO. En este paso validamos la
-              estructura antes de conectar el formulario con SQLite.
+              Crea preguntas para los juegos de PlayTECHO. A partir de este paso, las
+              categorías, preguntas y respuestas se guardan en SQLite.
             </p>
           </div>
 
@@ -109,6 +126,19 @@ export function QuestionsManagerScreen({ onBack }: QuestionsManagerScreenProps) 
             </span>
           </AppButton>
         </header>
+
+        {loadError && (
+          <section
+            style={{
+              background: 'rgba(233, 67, 98, 0.22)',
+              border: '1px solid rgba(255, 255, 255, 0.28)',
+              borderRadius: '22px',
+              padding: '18px',
+            }}
+          >
+            <strong>No se pudo cargar la base de datos:</strong> {loadError}
+          </section>
+        )}
 
         <section
           style={{
@@ -136,23 +166,98 @@ export function QuestionsManagerScreen({ onBack }: QuestionsManagerScreenProps) 
           />
 
           <SmallActionCard
-            title={`${savedQuestions.length}`}
-            description="Preguntas validadas en esta sesión."
+            title={`${questionSummaries.length}`}
+            description="Preguntas guardadas en SQLite."
           />
         </section>
 
-        <QuestionForm
-          categories={categories}
-          onCreateCategory={handleCreateCategory}
-          onSaveQuestion={handleSaveQuestion}
-        />
+        {isLoading ? (
+          <section
+            style={{
+              background: 'rgba(255, 255, 255, 0.16)',
+              borderRadius: '28px',
+              padding: '28px',
+              textAlign: 'center',
+              fontFamily: 'var(--font-title)',
+              fontSize: '1.8rem',
+            }}
+          >
+            Cargando banco de preguntas...
+          </section>
+        ) : (
+          <QuestionForm
+            categories={categories}
+            onCreateCategory={handleCreateCategory}
+            onSaveQuestion={handleSaveQuestion}
+          />
+        )}
+
+        {questionSummaries.length > 0 && (
+          <section
+            style={{
+              display: 'grid',
+              gap: '14px',
+            }}
+          >
+            <h2
+              style={{
+                margin: 0,
+                fontFamily: 'var(--font-title)',
+                fontSize: '2.2rem',
+              }}
+            >
+              Preguntas guardadas
+            </h2>
+
+            <div
+              style={{
+                display: 'grid',
+                gap: '10px',
+              }}
+            >
+              {questionSummaries.map((question) => (
+                <article
+                  key={question.id}
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.14)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    borderRadius: '20px',
+                    padding: '18px',
+                    display: 'grid',
+                    gap: '8px',
+                  }}
+                >
+                  <strong
+                    style={{
+                      fontFamily: 'var(--font-title)',
+                      fontSize: '1.25rem',
+                    }}
+                  >
+                    {question.pregunta}
+                  </strong>
+
+                  <span
+                    style={{
+                      opacity: 0.88,
+                      lineHeight: 1.4,
+                    }}
+                  >
+                    Categoría: {question.categoria_nombre} · Dificultad:{' '}
+                    {question.dificultad} · Respuestas: {question.total_respuestas} ·
+                    Puntaje total: {question.total_puntaje}
+                  </span>
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
       </section>
     </main>
   );
 }
 
 interface SmallActionCardProps {
-  icon?: React.ReactNode;
+  icon?: ReactNode;
   title: string;
   description: string;
 }
