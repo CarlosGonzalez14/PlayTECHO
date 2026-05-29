@@ -6,11 +6,20 @@ export type GameOverlayType =
   | 'steal-points'
   | 'team-wins';
 
+export type GameOverlayType =
+  | 'wrong-answer'
+  | 'strike-1'
+  | 'strike-2'
+  | 'strike-3'
+  | 'steal-points'
+  | 'team-wins';
+
 export type HundredTecherosGameEvent =
   | {
       type: 'SHOW_QUESTION';
       payload: {
         question: string;
+        answerCount: number;
       };
     }
   | {
