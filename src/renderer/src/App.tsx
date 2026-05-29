@@ -1,58 +1,34 @@
-import { fonts } from './shared/theme/fonts';
+import { useState } from 'react';
+import { LauncherScreen } from './screens/LauncherScreen';
+import { LoadingScreen } from './screens/LoadingScreen';
+import { QuestionsManagerScreen } from './screens/QuestionsManagerScreen';
+
+type AppScreen = 'launcher' | 'loading' | 'questions-manager';
 
 function App() {
+  const [screen, setScreen] = useState<AppScreen>('launcher');
+
+  const handleLaunchGame = () => {
+    setScreen('loading');
+
+    window.setTimeout(() => {
+      console.log('Aquí abriremos la ventana pública y la ventana privada del juego.');
+    }, 900);
+  };
+
+  if (screen === 'loading') {
+    return <LoadingScreen />;
+  }
+
+  if (screen === 'questions-manager') {
+    return <QuestionsManagerScreen onBack={() => setScreen('launcher')} />;
+  }
+
   return (
-    <main
-      style={{
-        minHeight: '100vh',
-        display: 'grid',
-        placeItems: 'center',
-        background: '#0092DD',
-        color: '#ffffff',
-      }}
-    >
-      <section style={{ textAlign: 'center' }}>
-        <h1
-          style={{
-            fontFamily: fonts.title,
-            fontSize: '5rem',
-            margin: 0,
-          }}
-        >
-          PlayTECHO
-        </h1>
-
-        <h2
-          style={{
-            fontFamily: fonts.accent,
-            fontSize: '2rem',
-            marginTop: '1rem',
-          }}
-        >
-          100 Techeros Dijeron
-        </h2>
-
-        <p
-          style={{
-            fontFamily: fonts.body,
-            fontSize: '1.2rem',
-            marginTop: '1rem',
-          }}
-        >
-          Juego educativo de escritorio con React, Electron y SQLite.
-        </p>
-
-        <p
-          style={{
-            fontFamily: fonts.techopardy,
-            fontSize: '1.8rem',
-            marginTop: '1rem',
-          }}
-        >
-          TECHOpardy
-        </p>
-      </section>
-    </main>
+    <LauncherScreen
+      onLaunchGame={handleLaunchGame}
+      onOpenQuestionsManager={() => setScreen('questions-manager')}
+    />
   );
 }
 
