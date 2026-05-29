@@ -6,13 +6,7 @@ export type GameOverlayType =
   | 'steal-points'
   | 'team-wins';
 
-export type GameOverlayType =
-  | 'wrong-answer'
-  | 'strike-1'
-  | 'strike-2'
-  | 'strike-3'
-  | 'steal-points'
-  | 'team-wins';
+export type TeamColor = 'red' | 'green' | 'yellow';
 
 export type HundredTecherosGameEvent =
   | {
@@ -31,15 +25,31 @@ export type HundredTecherosGameEvent =
       };
     }
   | {
+      type: 'AWARD_ROUND_POINTS';
+      payload: {
+        team: 'red' | 'green';
+      };
+    }
+  | {
+      type: 'SET_ACTIVE_TEAM';
+      payload: {
+        team: 'red' | 'green';
+        text: string;
+      };
+    }
+  | {
       type: 'SHOW_OVERLAY';
       payload: {
         overlayType: GameOverlayType;
         text?: string;
-        teamColor?: 'red' | 'green' | 'yellow';
+        teamColor?: TeamColor;
       };
     }
   | {
       type: 'CLEAR_OVERLAY';
+    }
+  | {
+      type: 'RESET_ROUND';
     }
   | {
       type: 'RESET_BOARD';
