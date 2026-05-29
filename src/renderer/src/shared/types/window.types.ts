@@ -31,6 +31,9 @@ export interface PlayTechoApi {
     getQuestionSummaries: () => Promise<QuestionSummary[]>;
     getQuestionsForExport: () => Promise<QuestionForExport[]>;
   };
+  windows: {
+    openHundredTecherosWindows: () => Promise<{ success: boolean }>;
+  };
 }
 
 declare global {
