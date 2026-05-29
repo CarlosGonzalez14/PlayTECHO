@@ -264,3 +264,70 @@ export function deleteQuestion(questionId: number) {
     id: questionId,
   };
 }
+
+export interface GameQuestionAnswer {
+  id: number;
+  respuesta: string;
+  puntaje: number;
+}
+
+export interface GameQuestionForPlay {
+  id: number;
+  pregunta: string;
+  dificultad: QuestionDifficulty;
+  categoria_id: number;
+  categoria_nombre: string;
+  respuestas: GameQuestionAnswer[];
+}
+
+interface GameQuestionRow {
+  id: number;
+  pregunta: string;
+  dificultad: QuestionDifficulty;
+  categoria_id: number;
+  categoria_nombre: string;
+}
+
+export function getQuestionForGameById(questionId: number): GameQuestionForPlay {
+  const database = getDatabase();
+
+  const question = database
+    .prepare(
+      `
+      SELECT
+        p.id,
+        p.pregunta,
+        p.dificultad,
+        p.categoria_id,
+        c.nombre AS categoria_nombre
+      FROM preguntas p
+      INNER JOIN categorias c ON c.id = p.categoria_id
+      WHERE p.id = ?
+        AND p.estado = 'publicada'
+      `
+    )
+    .get(questionId) as GameQuestionRow | undefined;
+
+  if (!question) {
+    throw new Error('No se encontró una pregunta publicada con ese ID.');
+  }
+
+  const respuestas = database
+    .prepare(
+      `
+      SELECT
+        id,
+        respuesta,
+        puntaje
+      FROM respuestas
+      WHERE pregunta_id = ?
+      ORDER BY id ASC
+      `
+    )
+    .all(questionId) as GameQuestionAnswer[];
+
+  return {
+    ...question,
+    respuestas,
+  };
+}
