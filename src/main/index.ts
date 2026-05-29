@@ -3,10 +3,12 @@ import { electronApp, optimizer } from '@electron-toolkit/utils';
 import { registerQuestionsIpc } from './ipc/questions.ipc';
 import { registerWindowsIpc } from './ipc/windows.ipc';
 import { openLauncherWindow } from './windows/windowManager';
+import { registerGameIpc } from './ipc/game.ipc';
 
 app.whenReady().then(() => {
   registerQuestionsIpc();
   registerWindowsIpc();
+  registerGameIpc();
 
   electronApp.setAppUserModelId('com.playtecho.app');
 
