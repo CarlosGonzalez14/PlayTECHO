@@ -31,6 +31,18 @@
 }
 
 :root {
+  --color-primary: #0092dd;
+  --color-secondary: #005ca9;
+  --color-text-light: #ffffff;
+  --color-text-dark: #1d1d1b;
+
+  --color-red: #e94362;
+  --color-green: #2fac66;
+  --color-yellow: #fdc533;
+  --color-gray: #c6c6c6;
+  --color-pink: #f088b6;
+  --color-purple: #954b97;
+
   --font-title: 'Fredoka', sans-serif;
   --font-body: 'Montserrat', sans-serif;
   --font-accent: 'Granesta', 'Fredoka', sans-serif;
@@ -41,9 +53,38 @@
   box-sizing: border-box;
 }
 
-body {
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
   margin: 0;
+  padding: 0;
+}
+
+body {
   font-family: var(--font-body);
-  background: #0092DD;
-  color: #ffffff;
+  background: var(--color-primary);
+  color: var(--color-text-light);
+  overflow: hidden;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+button {
+  border: none;
+}
+
+.app-shell {
+  width: 100vw;
+  height: 100vh;
+  background:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.22), transparent 32%),
+    linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  color: var(--color-text-light);
 }
