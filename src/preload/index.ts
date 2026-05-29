@@ -11,6 +11,8 @@ const playtechoApi = {
       ipcRenderer.invoke('questions:deleteQuestion', questionId),
     getQuestionSummaries: () => ipcRenderer.invoke('questions:getQuestionSummaries'),
     getQuestionsForExport: () => ipcRenderer.invoke('questions:getQuestionsForExport'),
+    getQuestionForGameById: (questionId: number) =>
+      ipcRenderer.invoke('questions:getQuestionForGameById', questionId),
   },
   windows: {
     openHundredTecherosWindows: () =>
