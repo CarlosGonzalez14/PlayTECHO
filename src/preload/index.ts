@@ -1,22 +1,26 @@
-import { contextBridge } from 'electron'
-import { electronAPI } from '@electron-toolkit/preload'
+import { contextBridge, ipcRenderer } from 'electron';
+import { electronAPI } from '@electron-toolkit/preload';
 
-// Custom APIs for renderer
-const api = {}
+const playtechoApi = {
+  questions: {
+    getCategories: () => ipcRenderer.invoke('questions:getCategories'),
+    createCategory: (name: string) => ipcRenderer.invoke('questions:createCategory', name),
+    createQuestion: (question: unknown) =>
+      ipcRenderer.invoke('questions:createQuestion', question),
+    getQuestionSummaries: () => ipcRenderer.invoke('questions:getQuestionSummaries'),
+  },
+};
 
-// Use `contextBridge` APIs to expose Electron APIs to
-// renderer only if context isolation is enabled, otherwise
-// just add to the DOM global.
 if (process.contextIsolated) {
   try {
-    contextBridge.exposeInMainWorld('electron', electronAPI)
-    contextBridge.exposeInMainWorld('api', api)
+    contextBridge.exposeInMainWorld('electron', electronAPI);
+    contextBridge.exposeInMainWorld('playtecho', playtechoApi);
   } catch (error) {
-    console.error(error)
+    console.error(error);
   }
 } else {
-  // @ts-ignore (define in dts)
-  window.electron = electronAPI
-  // @ts-ignore (define in dts)
-  window.api = api
+  // @ts-ignore fallback para contextIsolation desactivado
+  window.electron = electronAPI;
+  // @ts-ignore fallback para contextIsolation desactivado
+  window.playtecho = playtechoApi;
 }
